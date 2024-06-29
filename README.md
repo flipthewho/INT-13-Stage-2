@@ -94,5 +94,6 @@ fprintf(stderr, " -r read the secret from memory\n");
 fprintf(stderr, " -w write the secret to memory from stdin\n");
 }
 ```
-deleting realized with empty str, bit about writing i thought about an hour. so, i decided to use stdin. i think this is the best way just because we can hide ANYTHING just with pipeline 
-any file, any string, for exmple: `echo "hello kernel!" | ./KStool -w`
+__deleting__ realized with empty str, bit about __writing__ i thought about an hour. so, i decided to use stdin. i think this is the best way just because we can hide ANYTHING just with pipeline 
+any file, any string, for exmple:
+`echo "hello kernel!" | ./KStool -w`

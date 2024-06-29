@@ -6,6 +6,10 @@
 #define PROC_DIR "ksecret_dir"
 #define PROC_FILE "ksecret_file"
 
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("disgrace");
+MODULE_DESCRIPTION("driver to keep secrets via procfs in kspace");
+
 static struct proc_dir_entry *proc_dir;
 static struct proc_dir_entry *proc_file;
 
@@ -60,7 +64,7 @@ static ssize_t proc_write(struct file *file, const char *buf, size_t count, loff
 static const struct proc_ops proc_file_ops = {
     .proc_read = proc_read,
     .proc_write = proc_write,
-}
+};
 
 static int __init ksecret_init(void) {
     
@@ -85,10 +89,6 @@ static void __exit ksecret_exit(void) {
     kfree(secret_data);
     printk(KERN_INFO "ksecret module exited.\n");
 }
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("disgrace");
-MODULE_DESCRIPTION("driver to keep secrets via procfs in kspace");
 
 module_init(ksecret_init);
 module_exit(ksecret_exit);
