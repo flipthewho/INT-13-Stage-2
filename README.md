@@ -97,3 +97,24 @@ fprintf(stderr, " -w write the secret to memory from stdin\n");
 __deleting__ realized with empty str, bit about __writing__ i thought about an hour. so, i decided to use stdin. i think this is the best way just because we can hide ANYTHING just with pipeline 
 any file, any string, for exmple:
 `echo "hello kernel!" | ./KStool -w`
+
+# building and installing
+building kernel module
+```shell
+disgrace@home:~/INT-13-Stage-2/driver$ make
+make -C /lib/modules/6.10.0-rc5-disgrace/build M=/home/disgrace/INT-13-Stage-2/driver modules
+make[1]: Entering directory '/usr/src/linux-headers-6.10.0-rc5-disgrace'
+  CC [M]  /home/disgrace/INT-13-Stage-2/driver/Ksecret.o
+  MODPOST /home/disgrace/INT-13-Stage-2/driver/Module.symvers
+  CC [M]  /home/disgrace/INT-13-Stage-2/driver/Ksecret.mod.o
+  LD [M]  /home/disgrace/INT-13-Stage-2/driver/Ksecret.ko
+make[1]: Leaving directory '/usr/src/linux-headers-6.10.0-rc5-disgrace'
+disgrace@home:~/INT-13-Stage-2/driver$ ls
+Ksecret.c  Ksecret.ko  Ksecret.mod  Ksecret.mod.c  Ksecret.mod.o  Ksecret.o  Makefile  modules.order  Module.symvers
+
+disgrace@home:~/INT-13-Stage-2/driver$ sudo insmod Ksecret.ko 
+[sudo] password for disgrace: 
+
+disgrace@home:~/INT-13-Stage-2/driver$ lsmod | grep Ksecret
+Ksecret                12288  0
+```
