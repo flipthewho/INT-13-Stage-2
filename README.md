@@ -115,3 +115,20 @@ and install VM
 disgrace@home:~/vms$ qemu-system-x86_64 -boot d -enable-kvm -smp 12 -m 16384 
 -hda uwuntu.img -cdrom /media/disgrace/Ventoy/iso/ubuntu-22.04.4-desktop-amd64.iso
 ```
+getting sources
+```shell
+toor@uwuntu-vm:~/kernel$ wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.9.7.tar.xz
+--2024-06-30 19:02:37--   ...
+```
+and turning KASAN on
+![[Pasted image 20240630191304.png]]
+lets check
+```nano
+...
+CONFIG_CC_HAS_WORKING_NOSANITIZE_ADDRESS=y
+CONFIG_KASAN=y
+CONFIG_KASAN_GENERIC=y
+...
+```
+all is ok. lets build kernel
+![[Pasted image 20240630191853.png]]
