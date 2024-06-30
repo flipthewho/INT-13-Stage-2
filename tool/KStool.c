@@ -5,7 +5,7 @@
 #include <string.h>
 #include <getopt.h>
 
-#define PROCFS_PATH "/proc/secrets"
+#define PROCFS_PATH "/proc/secret"
 #define MAX_SECRET_SIZE 1024
 
 void usage(const char *prog_name) {

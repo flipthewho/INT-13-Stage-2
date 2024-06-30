@@ -105,6 +105,7 @@ so, as we can see, all works
 now we can try to build kernel with KASAN and test our modules
 
 # tests with KASAN
+## preparing
 create disk
 ```shel
 disgrace@home:~/vms$ qemu-img create -f qcow2 uwuntu.img 50G
@@ -123,7 +124,7 @@ toor@uwuntu-vm:~/kernel$ wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux
 and turning KASAN on
 ![alt text](https://github.com/flipthewho/INT-13-Stage-2/blob/main/media/Pasted%20image%2020240630191304.png)
 lets check
-```nano
+```shell
 ...
 CONFIG_CC_HAS_WORKING_NOSANITIZE_ADDRESS=y
 CONFIG_KASAN=y
@@ -140,3 +141,68 @@ dpkg-deb (subprocess): compressing tar member: internal zstd write error: 'No sp
 ```
 ahahahha. desktop ubuntu need much more space to compile kernel 
 (may be gui -> more drivers), so i switched to ubuntu server asap
+building kernel with kasan
+```shell
+toor@uwuntu:~/kernels$ sudo dpkg -i linux-headers-6.9.7kasan-disgrace_6.9.7-2_amd64.deb linux-image-6.9.7kasan-disgrace_6.9.7-2_amd64.deb linux-libc-dev_6.9.7-2_amd64.deb 
+Selecting previously unselected package linux-headers-6.9.7kasan-disgrace.
+(Reading database ... 77776 files and directories currently installed.)
+Preparing to unpack linux-headers-6.9.7kasan-disgrace_6.9.7-2_amd64.deb ...
+Unpacking linux-headers-6.9.7kasan-disgrace (6.9.7-2) ...
+...
+Warning: os-prober will not be executed to detect other bootable partitions.
+Systems on them will not be added to the GRUB boot configuration.
+Check GRUB_DISABLE_OS_PROBER documentation entry.
+Adding boot menu entry for UEFI Firmware Settings ...
+done
+Setting up linux-libc-dev:amd64 (6.9.7-2) ...
+```
+lets check kernel
+```shell
+toor@uwuntu:~$ uname -a
+Linux uwuntu 6.9.7kasan-disgrace #2 SMP PREEMPT_DYNAMIC Sun Jun 30 19:01:58 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
+toor@uwuntu:~$ cat /boot/config-6.9.7kasan-disgrace | grep KASAN
+CONFIG_KASAN_SHADOW_OFFSET=0xdffffc0000000000
+CONFIG_HAVE_ARCH_KASAN=y
+CONFIG_HAVE_ARCH_KASAN_VMALLOC=y
+CONFIG_CC_HAS_KASAN_GENERIC=y
+CONFIG_KASAN=y
+CONFIG_CC_HAS_KASAN_MEMINTRINSIC_PREFIX=y
+CONFIG_KASAN_GENERIC=y
+# CONFIG_KASAN_OUTLINE is not set
+CONFIG_KASAN_INLINE=y
+CONFIG_KASAN_STACK=y
+# CONFIG_KASAN_VMALLOC is not set
+# CONFIG_KASAN_MODULE_TEST is not set
+# CONFIG_KASAN_EXTRA_INFO is not set
+```
+
+
+building module an tool 
+```shell
+toor@uwuntu:~/INT-13-Stage-2/driver$ make
+make -C /lib/modules/6.8.0-31-generic/build M=/home/toor/INT-13-Stage-2/driver modules
+make[1]: Entering directory '/usr/src/linux-headers-6.8.0-31-generic'
+warning: the compiler differs from the one used to build the kernel
+  The kernel was built by: x86_64-linux-gnu-gcc-13 (Ubuntu 13.2.0-23ubuntu4) 13.2.0
+  You are using:           gcc-13 (Ubuntu 13.2.0-23ubuntu4) 13.2.0
+  CC [M]  /home/toor/INT-13-Stage-2/driver/Ksecret.o
+/home/toor/INT-13-Stage-2/driver/Ksecret.c:19:9: warning: no previous prototype for ‘proc_read’ [-Wmissing-prototypes]
+   19 | ssize_t proc_read(struct file *file, char __user *buf, size_t count, loff_t *pos) {
+      |         ^~~~~~~~~
+/home/toor/INT-13-Stage-2/driver/Ksecret.c:30:9: warning: no previous prototype for ‘proc_write’ [-Wmissing-prototypes]
+   30 | ssize_t proc_write(struct file *file, const char __user *buf, size_t count, loff_t *pos) {
+      |         ^~~~~~~~~~
+  MODPOST /home/toor/INT-13-Stage-2/driver/Module.symvers
+  CC [M]  /home/toor/INT-13-Stage-2/driver/Ksecret.mod.o
+  LD [M]  /home/toor/INT-13-Stage-2/driver/Ksecret.ko
+  BTF [M] /home/toor/INT-13-Stage-2/driver/Ksecret.ko
+Skipping BTF generation for /home/toor/INT-13-Stage-2/driver/Ksecret.ko due to unavailability of vmlinux
+make[1]: Leaving directory '/usr/src/linux-headers-6.8.0-31-generic'
+toor@uwuntu:~/INT-13-Stage-2/driver$ ls
+Ksecret.c  Ksecret.ko  Ksecret.mod  Ksecret.mod.c  Ksecret.mod.o  Ksecret.o  Makefile  Module.symvers  modules.order
+...
+toor@uwuntu:~/INT-13-Stage-2/tool$ gcc KStool.c -o tool
+toor@uwuntu:~/INT-13-Stage-2/tool$ ls
+KStool.c  tool
+toor@uwuntu:~/INT-13-Stage-2/tool$ 
+```
