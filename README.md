@@ -132,3 +132,10 @@ CONFIG_KASAN_GENERIC=y
 ```
 all is ok. lets build kernel
 ![alt text](https://github.com/flipthewho/INT-13-Stage-2/blob/main/media/Pasted%20image%2020240630191853.png)
+
+```shell
+dpkg-deb (subprocess): compressing tar member: internal zstd write error: 'No space left on device': No space left on device
+...
+/dev/sda3       50770432 47917792    241236 100% /
+```
+ahahahha
