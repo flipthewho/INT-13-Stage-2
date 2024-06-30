@@ -28,9 +28,8 @@ if (copy_to_user(buf, secret_data, secret_size))
 return secret_size;
 }
 ```
-here we checking EOF and index out of bounds, kinda UB errors
 ### write
-we can allocate a new memory area in the kernel to store the data, and frees the old memory area with __proc_write__ function takes data from user space and copies it into kernel space memory using the _copy_from_user_ function
+__proc_write__ function takes data from user space and copies it into kernel space memory using the _copy_from_user_ function
 ```c
 ssize_t proc_write(struct file *file, const char __user *buf, size_t count, loff_t *pos) {
 
@@ -44,6 +43,7 @@ secret_size = count;
 return count;
 }
 ```
+if (count > MAX_SECRET_SIZE) can help to reduce UB errors
 # userspace tool 
 so, we got some options
 ```c
