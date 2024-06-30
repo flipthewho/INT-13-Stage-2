@@ -103,3 +103,15 @@ disgrace@home:~/INT-13-Stage-2/tool$
 ```
 so, as we can see, all works
 now we can try to build kernel with KASAN and test our modules
+
+# tests with KASAN
+create disk
+```shel
+disgrace@home:~/vms$ qemu-img create -f qcow2 uwuntu.img 50G
+Formatting 'uwuntu.img', fmt=qcow2 ...
+```
+and install VM
+```shell
+disgrace@home:~/vms$ qemu-system-x86_64 -boot d -enable-kvm -smp 12 -m 16384 
+-hda uwuntu.img -cdrom /media/disgrace/Ventoy/iso/ubuntu-22.04.4-desktop-amd64.iso
+```
