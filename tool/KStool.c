@@ -17,21 +17,21 @@ void usage(const char *prog_name) {
 
 void write_secret() {
     char secret[MAX_SECRET_SIZE];
-    printf("Enter the secret: ");
+    printf("enter the secret: \n");
     if (!fgets(secret, MAX_SECRET_SIZE, stdin)) {
-        perror("Failed to read secret");
+        perror("failed to read secret");
         exit(EXIT_FAILURE);
     }
     secret[strcspn(secret, "\n")] = 0;  // Remove newline character
 
     int fd = open(PROCFS_PATH, O_WRONLY);
     if (fd < 0) {
-        perror("Failed to open proc file");
+        perror("failed to open proc file");
         exit(EXIT_FAILURE);
     }
 
     if (write(fd, secret, strlen(secret)) < 0) {
-        perror("Failed to write secret");
+        perror("failed to write secret\n");
         close(fd);
         exit(EXIT_FAILURE);
     }
@@ -42,20 +42,20 @@ void write_secret() {
 void read_secret() {
     int fd = open(PROCFS_PATH, O_RDONLY);
     if (fd < 0) {
-        perror("Failed to open proc file");
+        perror("failed to open proc file\n");
         exit(EXIT_FAILURE);
     }
 
     char buffer[MAX_SECRET_SIZE];
     ssize_t bytes_read = read(fd, buffer, MAX_SECRET_SIZE);
     if (bytes_read < 0) {
-        perror("Failed to read secret");
+        perror("failed to read secret\n");
         close(fd);
         exit(EXIT_FAILURE);
     }
 
     buffer[bytes_read] = '\0';
-    printf("Secret: %s\n", buffer);
+    printf("secret: %s\n", buffer);
 
     close(fd);
 }
@@ -63,12 +63,12 @@ void read_secret() {
 void delete_secret() {
     int fd = open(PROCFS_PATH, O_WRONLY);
     if (fd < 0) {
-        perror("Failed to open proc file");
+        perror("failed to open proc file\n");
         exit(EXIT_FAILURE);
     }
 
     if (write(fd, "", 0) < 0) {
-        perror("Failed to delete secret");
+        perror("failed to delete secret\n");
         close(fd);
         exit(EXIT_FAILURE);
     }

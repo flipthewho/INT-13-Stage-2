@@ -200,6 +200,7 @@ Skipping BTF generation for /home/toor/INT-13-Stage-2/driver/Ksecret.ko due to u
 make[1]: Leaving directory '/usr/src/linux-headers-6.8.0-31-generic'
 toor@uwuntu:~/INT-13-Stage-2/driver$ ls
 Ksecret.c  Ksecret.ko  Ksecret.mod  Ksecret.mod.c  Ksecret.mod.o  Ksecret.o  Makefile  Module.symvers  modules.order
+toor@uwuntu:~/INT-13-Stage-2/driver$ sudo insmod Ksecret.ko 
 ...
 toor@uwuntu:~/INT-13-Stage-2/tool$ gcc KStool.c -o tool
 toor@uwuntu:~/INT-13-Stage-2/tool$ ls
