@@ -121,7 +121,7 @@ toor@uwuntu-vm:~/kernel$ wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux
 --2024-06-30 19:02:37--   ...
 ```
 and turning KASAN on
-![changing Kconfig](media/Pasted image 20240630191304.png)
+![alt text](https://github.com/flipthewho/INT-13-Stage-2/blob/main/media/Pasted%20image%2020240630191304.png)
 lets check
 ```nano
 ...
@@ -131,4 +131,4 @@ CONFIG_KASAN_GENERIC=y
 ...
 ```
 all is ok. lets build kernel
-![[Pasted image 20240630191853.png]]
+![alt text](https://github.com/flipthewho/INT-13-Stage-2/blob/main/media/Pasted%20image%2020240630191853.png)
