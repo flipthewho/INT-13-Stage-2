@@ -138,4 +138,5 @@ dpkg-deb (subprocess): compressing tar member: internal zstd write error: 'No sp
 ...
 /dev/sda3       50770432 47917792    241236 100% /
 ```
-ahahahha
+ahahahha. desktop ubuntu need much more space to compile kernel 
+(may be gui -> more drivers), so i switched to ubuntu server asap
