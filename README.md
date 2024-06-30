@@ -121,7 +121,7 @@ toor@uwuntu-vm:~/kernel$ wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux
 --2024-06-30 19:02:37--   ...
 ```
 and turning KASAN on
-![[Pasted image 20240630191304.png]]
+![changing Kconfig](media/Pasted image 20240630191304.png)
 lets check
 ```nano
 ...
