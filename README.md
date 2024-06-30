@@ -13,25 +13,6 @@ static ssize_t proc_write(struct file *file, const char *buf, size_t count, loff
     // ...
 }
 ```
-and simple inits with basic files/dirs existence checks
-```C
-static int __init ksecret_init(void) {
-    
-    proc_dir = proc_mkdir(PROC_DIR, NULL);
-    if (!proc_dir) {
-        return -ENOMEM;
-    }
-
-    proc_file = proc_create(PROC_FILE, 0666, proc_dir, &proc_file_ops);
-    if (!proc_file) {
-        proc_remove(proc_dir);
-        return -ENOMEM;
-    }
-
-    printk(KERN_INFO "ksecret module initialized\n");
-    return 0;
-}
-```
 ## detailing RW
 ### read
 added __proc_read__ function reads data from kernel space memory and copies it to user space using the copy_to_user function.
