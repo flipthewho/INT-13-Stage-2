@@ -5,11 +5,11 @@
 ## basics
 first of all, we should can read and write in kernel space.
 ```C
-static ssize_t proc_read(struct file *file, char *buf, size_t count, loff_t *pos) {
+static ssize_t proc_read(struct file *file, char __user *buf, size_t count, loff_t *pos) {
     // ...
 }
 
-static ssize_t proc_write(struct file *file, const char *buf, size_t count, loff_t *pos) {
+static ssize_t proc_write(struct file *file, const char __user *buf, size_t count, loff_t *pos) {
     // ...
 }
 ```
@@ -78,4 +78,28 @@ disgrace@home:~/INT-13-Stage-2/driver$ sudo insmod Ksecret.ko
 disgrace@home:~/INT-13-Stage-2/driver$ lsmod | grep Ksecret
 Ksecret                12288  0
 ```
-building tool
+i installed Ksecret.ko with __insmod__
+building tool and checks 
+```shell
+disgrace@home:~/INT-13-Stage-2/tool$ ls
+KStool.c
+disgrace@home:~/INT-13-Stage-2/tool$ gcc KStool.c -o tool
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool 
+usage: ./tool -d | -r | -w
+  -d   delete the secret from memory
+  -r   read the secret from memory
+  -w   write the secret to memory from stdin
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool -d
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool -r
+Secret: 
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool -w
+Enter the secret: 1321oops
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool -r
+Secret: 1321oops
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool -d
+disgrace@home:~/INT-13-Stage-2/tool$ ./tool -r
+Secret: 
+disgrace@home:~/INT-13-Stage-2/tool$ 
+```
+so, as we can see, all works
+now we can try to build kernel with KASAN and test our modules
