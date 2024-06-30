@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 #include <getopt.h>
 
-#define PROC_FILE "/proc/proc_dir/proc_file"
+#define PROCFS_PATH "/proc/secrets"
+#define MAX_SECRET_SIZE 1024
 
 void usage(const char *prog_name) {
     fprintf(stderr, "usage: %s -d | -r | -w\n", prog_name);
@@ -13,72 +15,90 @@ void usage(const char *prog_name) {
     fprintf(stderr, "  -w   write the secret to memory from stdin\n");
 }
 
-int main(int argc, char *argv[]) {
-    
-    int opt;
-    FILE *fp;
-    char buffer[1024];
-    size_t n;
+void write_secret() {
+    char secret[MAX_SECRET_SIZE];
+    printf("Enter the secret: ");
+    if (!fgets(secret, MAX_SECRET_SIZE, stdin)) {
+        perror("Failed to read secret");
+        exit(EXIT_FAILURE);
+    }
+    secret[strcspn(secret, "\n")] = 0;  // Remove newline character
 
+    int fd = open(PROCFS_PATH, O_WRONLY);
+    if (fd < 0) {
+        perror("Failed to open proc file");
+        exit(EXIT_FAILURE);
+    }
+
+    if (write(fd, secret, strlen(secret)) < 0) {
+        perror("Failed to write secret");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
+}
+
+void read_secret() {
+    int fd = open(PROCFS_PATH, O_RDONLY);
+    if (fd < 0) {
+        perror("Failed to open proc file");
+        exit(EXIT_FAILURE);
+    }
+
+    char buffer[MAX_SECRET_SIZE];
+    ssize_t bytes_read = read(fd, buffer, MAX_SECRET_SIZE);
+    if (bytes_read < 0) {
+        perror("Failed to read secret");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    buffer[bytes_read] = '\0';
+    printf("Secret: %s\n", buffer);
+
+    close(fd);
+}
+
+void delete_secret() {
+    int fd = open(PROCFS_PATH, O_WRONLY);
+    if (fd < 0) {
+        perror("Failed to open proc file");
+        exit(EXIT_FAILURE);
+    }
+
+    if (write(fd, "", 0) < 0) {
+        perror("Failed to delete secret");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    close(fd);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        usage(argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    int opt;
     while ((opt = getopt(argc, argv, "drw")) != -1) {
         switch (opt) {
             case 'd':
-                fp = fopen(PROC_FILE, "w");
-                if (fp == NULL) {
-                    perror("unable to open file for writing");
-                    return 1;
-                }
-                if (fwrite("", sizeof(char), 0, fp) != 0) {
-                    perror("unable to write to file");
-                    fclose(fp);
-                    return 1;
-                }
-                fclose(fp);
-                printf("Secret deleted from memory.\n");
-                return 0;
-
+                delete_secret();
+                break;
             case 'r':
-                fp = fopen(PROC_FILE, "r");
-                if (fp == NULL) {
-                    perror("unable to open file for reading");
-                    return 1;
-                }
-                if (fgets(buffer, sizeof(buffer), fp) == NULL) {
-                    perror("unable to read from file");
-                    fclose(fp);
-                    return 1;
-                }
-                printf("Read from file: %s\n", buffer);
-                fclose(fp);
-                return 0;
-
+                read_secret();
+                break;
             case 'w':
-                n = fread(buffer, sizeof(char), sizeof(buffer) - 1, stdin);
-                if (n == 0) {
-                    fprintf(stderr, "unable to read from stdin\n");
-                    return 1;
-                }
-                buffer[n] = '\0'; 
-                fp = fopen(PROC_FILE, "w");
-                if (fp == NULL) {
-                    perror("unable to open file for writing");
-                    return 1;
-                }
-                if (fwrite(buffer, sizeof(char), n, fp) != n) {
-                    perror("unable to write to file");
-                    fclose(fp);
-                    return 1;
-                }
-                fclose(fp);
-                printf("wrote your secret.\n");
-                return 0;
-
+                write_secret();
+                break;
             default:
                 usage(argv[0]);
-                return 1;
+                return EXIT_FAILURE;
         }
     }
 
-    usage(argv[0]);
-    return 1;
+    return EXIT_SUCCESS;
 }
