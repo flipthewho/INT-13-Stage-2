@@ -175,8 +175,6 @@ CONFIG_KASAN_STACK=y
 # CONFIG_KASAN_MODULE_TEST is not set
 # CONFIG_KASAN_EXTRA_INFO is not set
 ```
-
-
 building module an tool 
 ```shell
 toor@uwuntu:~/INT-13-Stage-2/driver$ make
@@ -207,3 +205,121 @@ toor@uwuntu:~/INT-13-Stage-2/tool$ ls
 KStool.c  tool
 toor@uwuntu:~/INT-13-Stage-2/tool$ 
 ```
+##  tests
+basics tests
+```shell
+toor@uwuntu:~/INT-13-Stage-2/tool$ ./tool -r
+Secret: 
+toor@uwuntu:~/INT-13-Stage-2/tool$ ./tool -w
+Enter the secret: 123
+toor@uwuntu:~/INT-13-Stage-2/tool$ ./tool -r
+Secret: 123
+```
+all is ok
+lets make code unsafe and made this:
+```C
+ssize_t proc_write(struct file *file, const char __user *buf, size_t count, loff_t *pos) {
+    char *kbuf;
+    kbuf = kmalloc(count, GFP_KERNEL);
+    // basic logic
+    kbuf[count + 10] = '\0';
+    kfree(kbuf);
+    return count;
+}
+```
+so, here we escaping from array
+lets test it out... and we did it!
+```shell
+[  434.304835] /proc/secret created
+[ 4461.821504] /proc/secret removed
+[ 6490.271968] /proc/secret created
+[ 6521.174838] ==================================================================
+[ 6521.175059] BUG: KASAN: slab-out-of-bounds in proc_write+0xb3/0xd0 [Ksecret]
+[ 6521.175230] Write of size 1 at addr ffff888121d9f46d by task tool/2264
+
+[ 6521.175506] CPU: 9 PID: 2264 Comm: tool Tainted: G           OE      6.9.7kasan-disgrace #2
+[ 6521.175664] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[ 6521.175816] Call Trace:
+[ 6521.175944]  <TASK>
+[ 6521.176066]  dump_stack_lvl+0x76/0xa0
+[ 6521.176245]  print_report+0xd1/0x670
+[ 6521.176397]  ? __pfx__raw_spin_lock_irqsave+0x10/0x10
+[ 6521.176544]  ? kasan_complete_mode_report_info+0x26/0x200
+[ 6521.176684]  kasan_report+0xd6/0x120
+[ 6521.176810]  ? proc_write+0xb3/0xd0 [Ksecret]
+[ 6521.176948]  ? proc_write+0xb3/0xd0 [Ksecret]
+[ 6521.177084]  __asan_report_store1_noabort+0x17/0x30
+[ 6521.177219]  proc_write+0xb3/0xd0 [Ksecret]
+[ 6521.177367]  proc_reg_write+0x1d5/0x2a0
+[ 6521.177519]  ? fpregs_restore_userregs+0xe8/0x210
+[ 6521.181441]  vfs_write+0x234/0xfb0
+[ 6521.182346]  ? syscall_exit_to_user_mode+0x87/0x260
+[ 6521.183265]  ? __pfx_vfs_write+0x10/0x10
+[ 6521.184194]  ? __kasan_check_read+0x11/0x20
+[ 6521.185112]  ? __fget_light+0x5b/0x480
+[ 6521.186017]  ? do_syscall_64+0x8b/0x180
+[ 6521.186910]  ksys_write+0x11e/0x250
+[ 6521.187801]  ? __pfx_ksys_write+0x10/0x10
+[ 6521.188683]  ? __kasan_check_write+0x14/0x30
+[ 6521.189565]  ? __count_memcg_events+0x264/0x380
+[ 6521.190450]  __x64_sys_write+0x72/0xc0
+[ 6521.191317]  x64_sys_call+0x7e/0x25c0
+[ 6521.192182]  do_syscall_64+0x7e/0x180
+[ 6521.193025]  ? __kasan_check_read+0x11/0x20
+[ 6521.193858]  ? fpregs_assert_state_consistent+0x21/0xb0
+[ 6521.194692]  ? irqentry_exit_to_user_mode+0x7c/0x260
+[ 6521.195530]  ? irqentry_exit+0x43/0x50
+[ 6521.196368]  ? exc_page_fault+0x7b/0x110
+[ 6521.197206]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[ 6521.198063] RIP: 0033:0x7a0a28d1c574
+[ 6521.198903] Code: c7 00 16 00 00 00 b8 ff ff ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 f3 0f 1e fa 80 3d d5 ea 0e 00 00 74 13 b8 01 00 00 00 0f 05 <48> 3d 00 f0 ff ff 77 54 c3 0f 1f 00 55 48 89 e5 48 83 ec 20 48 89
+[ 6521.200604] RSP: 002b:00007ffc6594d618 EFLAGS: 00000202 ORIG_RAX: 0000000000000001
+[ 6521.201355] RAX: ffffffffffffffda RBX: 00007ffc6594db98 RCX: 00007a0a28d1c574
+[ 6521.202096] RDX: 0000000000000003 RSI: 00007ffc6594d630 RDI: 0000000000000003
+[ 6521.202838] RBP: 00007ffc6594da40 R08: 000063bf6bba76b4 R09: 0000000000000410
+[ 6521.203591] R10: 0000000000000000 R11: 0000000000000202 R12: 0000000000000002
+[ 6521.204356] R13: 0000000000000000 R14: 000063bf662dad58 R15: 00007a0a28e8f000
+[ 6521.205109]  </TASK>
+
+[ 6521.206527] Allocated by task 2264:
+[ 6521.207225]  kasan_save_stack+0x39/0x70
+[ 6521.207234]  kasan_save_track+0x14/0x40
+[ 6521.207237]  kasan_save_alloc_info+0x37/0x60
+[ 6521.207240]  __kasan_kmalloc+0xc3/0xd0
+[ 6521.207243]  __kmalloc+0x21f/0x530
+[ 6521.207250]  proc_write+0x23/0xd0 [Ksecret]
+[ 6521.207258]  proc_reg_write+0x1d5/0x2a0
+[ 6521.207262]  vfs_write+0x234/0xfb0
+[ 6521.207265]  ksys_write+0x11e/0x250
+[ 6521.207268]  __x64_sys_write+0x72/0xc0
+[ 6521.207270]  x64_sys_call+0x7e/0x25c0
+[ 6521.207274]  do_syscall_64+0x7e/0x180
+[ 6521.207278]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+
+[ 6521.207974] The buggy address belongs to the object at ffff888121d9f460
+                which belongs to the cache kmalloc-8 of size 8
+[ 6521.209341] The buggy address is located 10 bytes to the right of
+                allocated 3-byte region [ffff888121d9f460, ffff888121d9f463)
+
+[ 6521.211398] The buggy address belongs to the physical page:
+[ 6521.212111] page: refcount:1 mapcount:0 mapping:0000000000000000 index:0xffff888121d9f060 pfn:0x121d9f
+[ 6521.212119] flags: 0x17ffffc0000800(slab|node=0|zone=2|lastcpupid=0x1fffff)
+[ 6521.212124] page_type: 0xffffffff()
+[ 6521.212141] raw: 0017ffffc0000800 ffff888100042280 dead000000000122 0000000000000000
+[ 6521.212144] raw: ffff888121d9f060 000000008080007e 00000001ffffffff 0000000000000000
+[ 6521.212146] page dumped because: kasan: bad access detected
+
+[ 6521.212836] Memory state around the buggy address:
+[ 6521.213535]  ffff888121d9f300: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[ 6521.214250]  ffff888121d9f380: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[ 6521.214973] >ffff888121d9f400: fc fc fc fc fc fc fc fc fc fc fc fc 03 fc fc fc
+[ 6521.215684]                                                           ^
+[ 6521.216443]  ffff888121d9f480: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[ 6521.217190]  ffff888121d9f500: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+[ 6521.217910] ==================================================================
+[ 6521.218690] Disabling lock debugging due to kernel taint
+toor@uwuntu:~$ 
+
+```
+so, i wrote `123` again. and KASAN says: `[ 6521.209341] The buggy address is located 10 bytes to the right of allocated 3-byte region [ffff888121d9f460, ffff888121d9f463)`
+our three bytesis `123` prompt and `kbuf[count + 10]` is 10-bytes-shift to the right
