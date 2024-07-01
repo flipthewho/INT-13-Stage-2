@@ -47,3 +47,10 @@ $ ./KStool -d
 $ ./KStool -r
 secret: 
 ```
+
+## Possible QA
+__Q:__ How can i remove temp files like ` Ksecret.mod Ksecret.mod.c Ksecret.mod.o  Ksecret.o modules.order Module.symvers` ?
+__A:__ `$ make clean` in current driver directory
+
+__Q:__  How can i remove module?
+__A:__ `$ sudo rmmod Ksecret` 
