@@ -49,8 +49,8 @@ secret:
 ```
 
 ## Possible QA
-__Q:__ How can i remove temp files like ` Ksecret.mod Ksecret.mod.c Ksecret.mod.o  Ksecret.o modules.order Module.symvers` ?
+__Q:__ How can i remove temp files like ` Ksecret.mod Ksecret.mod.c Ksecret.mod.o  Ksecret.o modules.order Module.symvers` ? <br />
 __A:__ `$ make clean` in current driver directory
 
-__Q:__  How can i remove module?
+__Q:__  How can i remove module? <br />
 __A:__ `$ sudo rmmod Ksecret` 
