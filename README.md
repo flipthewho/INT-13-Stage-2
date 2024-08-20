@@ -12,6 +12,7 @@ cd INT-13-Stage-2/
 ```
 Installing driver:
 ```shell
+git clone https://github.com/flipthewho/INT-13-Stage-2.git
 cd driver/
 make
 sudo insmod Ksecret.ko
